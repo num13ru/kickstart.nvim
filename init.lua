@@ -460,6 +460,22 @@ require('lazy').setup({
         })
       end, { desc = '[/] Fuzzily search in current buffer' })
 
+      vim.keymap.set('n', '<leader>yD', function()
+        local diagnostics = vim.diagnostic.get(0, {
+          lnum = vim.fn.line '.' - 1,
+        })
+
+        if vim.tbl_isempty(diagnostics) then
+          vim.notify 'No diagnostics on this line'
+          return
+        end
+
+        local messages = vim.iter(diagnostics):map(function(d) return d.message end):totable()
+
+        vim.fn.setreg('+', table.concat(messages, '\n'))
+        vim.notify 'Diagnostics copied'
+      end, { desc = '[Y]ank all [D]iagnostics on line' })
+
       -- It's also possible to pass additional configuration options.
       --  See `:help telescope.builtin.live_grep()` for information about particular keys
       vim.keymap.set(
