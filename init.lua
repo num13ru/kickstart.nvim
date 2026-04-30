@@ -235,6 +235,52 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   callback = function() vim.hl.on_yank() end,
 })
 
+-- Compare current buffer with the file on disk.
+-- Useful when an external tool/agent has modified the file.
+vim.api.nvim_create_user_command('DiffOrig', function()
+  local orig_win = vim.api.nvim_get_current_win()
+  local orig_buf = vim.api.nvim_get_current_buf()
+  local file = vim.api.nvim_buf_get_name(orig_buf)
+
+  if file == '' then
+    vim.notify('Current buffer has no file name', vim.log.levels.WARN)
+    return
+  end
+
+  if vim.fn.filereadable(file) == 0 then
+    vim.notify('File is not readable: ' .. file, vim.log.levels.WARN)
+    return
+  end
+
+  local lines = vim.fn.readfile(file)
+  local ft = vim.bo[orig_buf].filetype
+
+  -- Open scratch buffer with the on-disk version.
+  vim.cmd 'vert new'
+  local disk_win = vim.api.nvim_get_current_win()
+  local disk_buf = vim.api.nvim_get_current_buf()
+
+  vim.api.nvim_buf_set_name(disk_buf, '[disk] ' .. file)
+  vim.bo[disk_buf].buftype = 'nofile'
+  vim.bo[disk_buf].bufhidden = 'wipe'
+  vim.bo[disk_buf].swapfile = false
+  vim.bo[disk_buf].filetype = ft
+
+  vim.api.nvim_buf_set_lines(disk_buf, 0, -1, false, lines)
+  vim.bo[disk_buf].modifiable = false
+  vim.bo[disk_buf].readonly = true
+
+  -- Diff original buffer against the scratch on-disk buffer.
+  vim.api.nvim_set_current_win(orig_win)
+  vim.cmd 'diffthis'
+
+  vim.api.nvim_set_current_win(disk_win)
+  vim.cmd 'diffthis'
+
+  -- Return focus to the real editable buffer.
+  vim.api.nvim_set_current_win(orig_win)
+end, { desc = 'Diff current buffer against file on disk' })
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
