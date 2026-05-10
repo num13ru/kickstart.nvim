@@ -286,6 +286,28 @@ vim.api.nvim_create_user_command('DiffOrig', function()
   vim.api.nvim_set_current_win(orig_win)
 end, { desc = 'Diff current buffer against file on disk' })
 
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'netrw',
+  callback = function()
+    vim.keymap.set('n', '<leader>oe', function()
+      local dir = vim.fn.expand '%:p:h'
+      local name = vim.fn.expand '<cfile>'
+
+      if name == '' or name == './' or name == '../' then
+        vim.fn.jobstart({ 'open', dir }, { detach = true })
+        return
+      end
+
+      local path = vim.fs.joinpath(dir, name)
+
+      vim.fn.jobstart({ 'open', '-R', path }, { detach = true })
+    end, {
+      buffer = true,
+      desc = 'Reveal netrw item in Finder',
+    })
+  end,
+})
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
