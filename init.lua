@@ -207,6 +207,12 @@ vim.keymap.set('n', '<leader>tt', function()
   vim.cmd 'startinsert'
 end, { desc = 'Open terminal below' })
 
+vim.keymap.set('n', '<leader>j', ':m .+1<CR>==', { desc = 'Move line down' })
+vim.keymap.set('n', '<leader>k', ':m .-2<CR>==', { desc = 'Move line up' })
+
+vim.keymap.set('v', '<leader>j', ":m '>+1<CR>gv=gv", { desc = 'Move selection down' })
+vim.keymap.set('v', '<leader>k', ":m '<-2<CR>gv=gv", { desc = 'Move selection up' })
+
 -- TIP: Disable arrow keys in normal mode
 vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
