@@ -192,6 +192,8 @@ vim.diagnostic.config {
   jump = { float = true },
 }
 
+vim.keymap.set('n', '<leader>e', vim.cmd.Ex, { desc = 'Open NetRW explorer' })
+
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
@@ -311,6 +313,25 @@ vim.api.nvim_create_autocmd('FileType', {
       buffer = true,
       desc = 'Reveal netrw item in Finder',
     })
+  end,
+})
+
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'netrw',
+  callback = function(event)
+    local map = function(lhs, rhs, desc)
+      vim.keymap.set('n', lhs, rhs, {
+        buffer = event.buf,
+        remap = false,
+        desc = desc,
+      })
+    end
+
+    map(',f', function() require('telescope.builtin').find_files() end, 'Telescope find files')
+
+    map(',b', function() require('telescope.builtin').buffers() end, 'Telescope buffers')
+
+    map(',g', function() require('telescope.builtin').live_grep() end, 'Telescope live grep')
   end,
 })
 
